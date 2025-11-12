@@ -4,6 +4,21 @@ A set of Python CLI tools for fetching and processing ArcticDEM strip DEMs from 
 
 > **Note on Coregistration**: The coregistration workflows implemented here provide a lightweight first-pass alignment suitable for exploratory analysis and visualization. They are not rigorous geodetic solutions. Users requiring precise coregistration for scientific applications should carefully validate results and consider more sophisticated approaches.
 
+<details>
+<summary><b>What is "lightweight first-pass alignment"?</b></summary>
+
+The coregistration is considered "lightweight" because it uses simplified assumptions compared to rigorous geodetic workflows:
+
+1. **Static stable ground mask**: The inlier mask identifying stable terrain is generated once from the reference DEM's slope (paramaterized, but default is 2-30 degrees) and never updated opposed to iteratively refining this mask after each transformation step to exclude areas of real change or remaining misalignment.
+
+2. **No validation between steps**: A fixed pipeline (e.g., VerticalShift -> ICP -> NuthKaab) is applied without statistically validating whether each step improved alignment or checking for residual systematic biases.
+
+3. **Global transformation assumption**: A single transformation is applied uniformly across the entire DEM extent, ignoring potential spatially-varying distortions, elevation-dependent biases, or terrain-specific errors that would require blockwise coregistration or bias-correction approaches.
+
+For applications requiring sub-meter precision (e.g., tectonic deformation, precise volume change), users should validate results against independent ground control and consider more sophisticated coregistration workflows with iterative outlier detection and spatial bias modeling.
+
+</details>
+
 ## What This Tool Does
 
 `fetch-arcticdem` provides three command-line tools for working with [ArcticDEM](https://www.pgc.umn.edu/data/arcticdem/) strip DEMs:
@@ -11,6 +26,8 @@ A set of Python CLI tools for fetching and processing ArcticDEM strip DEMs from 
 1. **Fetch DEMs**: Query and download ArcticDEM strips via STAC, apply automated quality masks, and export as cloud-optimized GeoTIFFs
 2. **Coregister DEMs**: Apply 3D affine transformations to align DEM stacks using [xdem](https://xdem.readthedocs.io/en/latest/index.html) coregistration methods
 3. **Combined Workflow**: Execute both steps in a single command
+
+![coreg example](examples/images/coreg_example.png)
 
 **Workflow:**
 - Input: Area of Interest (any GeoPandas-readable vector file or bounding box coordinates)
