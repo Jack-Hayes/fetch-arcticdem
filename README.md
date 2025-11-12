@@ -19,6 +19,27 @@ For applications requiring sub-meter precision (e.g., tectonic deformation, prec
 
 </details>
 
+## Table of Contents
+
+- [What This Tool Does](#what-this-tool-does): Overview of the project's purpose and main features.  
+- [Prerequisites](#prerequisites): Software and environment requirements to run the tools.  
+- [Installation](#installation): How to clone the repo and create the Conda/Micromamba environment.  
+- [Quick Start](#quick-start): Minimal examples to fetch and (optionally) coregister DEMs.  
+  - [Minimal Example: Fetch and Coregister DEMs](#minimal-example-fetch-and-coregister-dems): A short, copy-pastable command sequence to get started.  
+- [CLI Commands](#cli-commands): Summary of the three primary command-line scripts and their roles.  
+  - [fetch_arcticdem.py](#fetch_arcticdempy): Fetch, mask, reproject, and export ArcticDEM strips as COGs.  
+  - [coregister_arcticdem.py](#coregister_arcticdempy): Coregister a DEM stack using xdem methods (lightweight first-pass).  
+  - [fetch_and_coregister.py](#fetch_and_coregisterpy): Combined workflow that runs fetch + coregister in one command.  
+- [Technical Notes](#technical-notes): Details about dataset coverage, CRS, licensing, and caveats.  
+  - [ArcticDEM Dataset](#arcticdem-dataset): Short note on coverage and where to explore the data.  
+  - [Metadata Preservation](#metadata-preservation): Which ArcticDEM metadata fields are retained in outputs.  
+  - [Coregistration Methods](#coregistration-methods): Summary of the xdem methods implemented and their purpose.  
+- [Known Limitations](#known-limitations): Important caveats and when to avoid using the lightweight coregistration.  
+- [Output Files](#output-files): What files the scripts produce and their naming conventions.  
+- [Contributing](#contributing): How to contribute, reporting issues, and linting requirements.  
+- [License](#license): Project licensing information.  
+- [References](#references): Links to ArcticDEM, xdem, and PGC documentation.
+
 ## What This Tool Does
 
 `fetch-arcticdem` provides three command-line tools for working with [ArcticDEM](https://www.pgc.umn.edu/data/arcticdem/) strip DEMs:
@@ -43,6 +64,8 @@ For applications requiring sub-meter precision (e.g., tectonic deformation, prec
 ## Prerequisites
 
 This tool depends on specific versions of GDAL, rasterio, xarray, and other geospatial libraries. The recommended way to install these is by using a dedicated Conda environment to prevent conflicts with existing installations.
+
+> **Important**: Estimated disk usage after creating the conda/micromamba environment (conda-forge, python=3.11 + listed deps): ~1.6 GB (measured on Linux x86_64 with micromamba). ~1.0 GB is Python packages under lib/python3.11 (site-packages), ~0.4 GB are other compiled libraries under lib (GDAL/PROJ, C/C++ libs), and the remaining ~0.2 GB is binaries, headers, data files and metadata (bin, include, share, conda-meta, etc.). Reducing this environment is currently under development.
 
 **Install Conda:** If you don't have it, install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) (recommended for faster performance).
 
@@ -278,7 +301,7 @@ MIT License - see LICENSE file for details.
 
 ---
 
-**References:**
+## References:
 - ArcticDEM: https://www.pgc.umn.edu/data/arcticdem/
 - xdem: https://xdem.readthedocs.io/en/latest/
 - PGC DEM Products Guide: https://www.pgc.umn.edu/guides/stereo-derived-elevation-models/pgc-dem-products-arcticdem-rema-and-earthdem/
