@@ -1,0 +1,73 @@
+name: STAC Endpoint Health Check
+
+on:
+  schedule:
+    - cron: '0 0 */14 * *'
+  workflow_dispatch:
+
+jobs:
+  check-stac-endpoint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install pystac-client requests
+      
+      - name: Check STAC endpoint
+        run: |
+          python - <<EOF
+          import sys
+          import pystac_client
+          import requests
+          
+          stac_url = "https://stac.pgc.umn.edu/api/v1/"
+          collection = "arcticdem-strips-s2s041-2m"
+          
+          print(f"Checking STAC endpoint: {stac_url}")
+          
+          try:
+              response = requests.get(stac_url, timeout=10)
+              response.raise_for_status()
+              print(f"STAC endpoint is reachable (status: {response.status_code})")
+          except Exception as e:
+              print(f"ERROR: STAC endpoint unreachable: {e}")
+              sys.exit(1)
+          
+          try:
+              catalog = pystac_client.Client.open(stac_url)
+              print(f"Successfully opened STAC catalog")
+          except Exception as e:
+              print(f"ERROR: Failed to open STAC catalog: {e}")
+              sys.exit(1)
+          
+          try:
+              search = catalog.search(collections=[collection], max_items=1)
+              items = search.item_collection()
+              
+              if len(items) > 0:
+                  print(f"Successfully queried collection '{collection}' (found {len(items)} item)")
+              else:
+                  print(f"WARNING: Collection '{collection}' returned no items")
+                  sys.exit(1)
+          except Exception as e:
+              print(f"ERROR: Failed to search collection: {e}")
+              sys.exit(1)
+          
+          print("STAC endpoint health check passed")
+          EOF
+      
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "STAC endpoint health check failed"
+          echo "Please investigate the ArcticDEM STAC endpoint at https://stac.pgc.umn.edu/api/v1/"
+        
