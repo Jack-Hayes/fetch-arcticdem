@@ -263,9 +263,6 @@ def fetch_arcticdem_stack(
             transform=da_dem_masked.rio.transform(),
             nodata=nodata_val,
             compress="DEFLATE",
-            tiled=True,
-            blockxsize=512,
-            blockysize=512,
         ) as dst:
             dst.write(da_dem_masked.values, 1)
             dst.update_tags(**{k: str(v) for k, v in meta_data.items()})
@@ -290,9 +287,6 @@ def fetch_arcticdem_stack(
                 transform=hill_da.rio.transform(),
                 nodata=0,
                 compress="DEFLATE",
-                tiled=True,
-                blockxsize=512,
-                blockysize=512,
             ) as dst:
                 dst.write(hill_da.values.astype("uint8"), 1)
                 dst.update_tags(**{k: str(v) for k, v in meta_data.items()})

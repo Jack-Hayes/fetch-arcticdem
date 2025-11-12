@@ -143,6 +143,10 @@ python scripts/fetch_arcticdem.py \
 
 Coregister a stack of DEMs using xdem affine transformation methods.
 
+![coreg benchmark](examples/images/coreg_benchmark.png)
+
+Coregistration processing time and memory usage scale strongly with the total area processed, while the number of DEMs in the stack has a more moderate impact. For best performance and reliability, users are encouraged to limit processing to small AOIs when using this tool.
+
 <details>
 <summary><b>Click to expand arguments</b></summary>
 

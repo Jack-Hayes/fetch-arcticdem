@@ -296,63 +296,99 @@ def coregister_arcticdem_stack(
             )
             logger.info("Coregistration fit complete")
 
+            logger.info("Coregistration fit complete")
+
             # Extract transformation information
             coreg_file.write(f"DEM {i + 1}/{len(dem_stack.time)}: {datetime_str}\n")
 
-            # Get metadata from pipeline
-            meta = pipeline_i.meta
+            # Get cumulative transformation from the final matrix
+            final_matrix = pipeline_i.to_matrix()
+            cumulative_shift_x = final_matrix[0, 3]
+            cumulative_shift_y = final_matrix[1, 3]
+            cumulative_shift_z = final_matrix[2, 3]
 
-            # Log affine transformation parameters
-            if "outputs" in meta:
-                outputs = meta["outputs"]
+            # Write cumulative transformation (summary)
+            coreg_file.write("  Cumulative Transformation:\n")
+            coreg_file.write("    Shifts (m):\n")
+            coreg_file.write(f"      Easting (X):  {cumulative_shift_x:>10.3f}\n")
+            coreg_file.write(f"      Northing (Y): {cumulative_shift_y:>10.3f}\n")
+            coreg_file.write(f"      Vertical (Z): {cumulative_shift_z:>10.3f}\n")
+            coreg_file.write("    Transformation Matrix:\n")
+            for row in final_matrix:
+                coreg_file.write(f"      {row}\n")
 
-                # Extract shifts
-                shift_x = outputs.get("shift_x", 0.0)
-                shift_y = outputs.get("shift_y", 0.0)
-                shift_z = outputs.get("shift_z", 0.0)
-
-                coreg_file.write("  Shifts (m):\n")
-                coreg_file.write(f"    Easting (X):  {shift_x:>10.3f}\n")
-                coreg_file.write(f"    Northing (Y): {shift_y:>10.3f}\n")
-                coreg_file.write(f"    Vertical (Z): {shift_z:>10.3f}\n")
-
-                logger.info(
-                    f"  Shifts - X: {shift_x:.3f} m, Y: {shift_y:.3f} m, Z: {shift_z:.3f} m"
-                )
-
-                # If affine matrix is available, extract rotations
-                if "matrix" in outputs:
-                    matrix = outputs["matrix"]
-                    coreg_file.write("  Affine transformation matrix:\n")
-                    for row in matrix:
-                        coreg_file.write(f"    {row}\n")
-
-                    # Extract rotations using xdem utility
-                    try:
-                        rotations = xdem.coreg.AffineCoreg.to_rotations(matrix)
-                        coreg_file.write("  Rotations (degrees):\n")
-                        coreg_file.write(f"    X-axis: {np.degrees(rotations[0]):>10.6f}\n")
-                        coreg_file.write(f"    Y-axis: {np.degrees(rotations[1]):>10.6f}\n")
-                        coreg_file.write(f"    Z-axis: {np.degrees(rotations[2]):>10.6f}\n")
-                        logger.info(
-                            f"  Rotations - X: {np.degrees(rotations[0]):.6f}°, "
-                            f"Y: {np.degrees(rotations[1]):.6f}°, "
-                            f"Z: {np.degrees(rotations[2]):.6f}°"
-                        )
-                    except Exception:
-                        pass
-
-                # Log iteration info if available
-                if "last_iteration" in outputs:
-                    last_iter = outputs["last_iteration"]
-                    coreg_file.write(f"  Iterations completed: {last_iter}\n")
-                    logger.info(f"  Iterations: {last_iter}")
-
-                if "all_tolerances" in outputs:
-                    tolerances = outputs["all_tolerances"]
-                    coreg_file.write(f"  Final tolerance: {tolerances[-1]:.6f}\n")
+            # Extract rotations from final matrix
+            try:
+                rotations = xdem.coreg.AffineCoreg.to_rotations(final_matrix)
+                coreg_file.write("    Rotations (degrees):\n")
+                coreg_file.write(f"      X-axis: {np.degrees(rotations[0]):>10.6f}\n")
+                coreg_file.write(f"      Y-axis: {np.degrees(rotations[1]):>10.6f}\n")
+                coreg_file.write(f"      Z-axis: {np.degrees(rotations[2]):>10.6f}\n")
+            except Exception:
+                pass
 
             coreg_file.write("\n")
+
+            # Log to console
+            logger.info(
+                f"  Cumulative shifts - X: {cumulative_shift_x:.3f} m, "
+                f"Y: {cumulative_shift_y:.3f} m, Z: {cumulative_shift_z:.3f} m"
+            )
+
+            # Write detailed per-step transformations
+            coreg_file.write("  Individual Step Transformations:\n")
+            for step_idx, step in enumerate(pipeline_i.pipeline):
+                step_name = type(step).__name__
+                step_meta = step.meta
+
+                coreg_file.write(f"\n    Step {step_idx + 1}: {step_name}\n")
+
+                # Extract step-specific outputs
+                if "outputs" in step_meta and "affine" in step_meta["outputs"]:
+                    affine_outputs = step_meta["outputs"]["affine"]
+
+                    # Write shifts if available
+                    if (
+                        "shift_x" in affine_outputs
+                        or "shift_y" in affine_outputs
+                        or "shift_z" in affine_outputs
+                    ):
+                        coreg_file.write("      Shifts (m):\n")
+                        if "shift_x" in affine_outputs:
+                            coreg_file.write(
+                                f"        X: {float(affine_outputs['shift_x']):>10.6f}\n"
+                            )
+                        if "shift_y" in affine_outputs:
+                            coreg_file.write(
+                                f"        Y: {float(affine_outputs['shift_y']):>10.6f}\n"
+                            )
+                        if "shift_z" in affine_outputs:
+                            coreg_file.write(
+                                f"        Z: {float(affine_outputs['shift_z']):>10.6f}\n"
+                            )
+
+                    # Write matrix if available
+                    if "matrix" in affine_outputs:
+                        coreg_file.write("      Transformation Matrix:\n")
+                        matrix = affine_outputs["matrix"]
+                        for row in matrix:
+                            coreg_file.write(f"        {row}\n")
+
+                    # Write centroid if available (ICP)
+                    if "centroid" in affine_outputs:
+                        centroid = affine_outputs["centroid"]
+                        coreg_file.write(
+                            f"      Centroid: ({float(centroid[0]):.2f}, {float(centroid[1]):.2f}, {float(centroid[2]):.2f})\n"
+                        )
+
+                # Write iteration info if available
+                if "outputs" in step_meta:
+                    outputs = step_meta["outputs"]
+                    if "random" in outputs and "subsample_final" in outputs["random"]:
+                        subsample = outputs["random"]["subsample_final"]
+                        coreg_file.write(f"      Subsample size: {subsample}\n")
+
+            coreg_file.write("\n" + "=" * 80 + "\n\n")
 
             aligned_dem_obj = pipeline_i.apply(elev=tba_dem)
 
