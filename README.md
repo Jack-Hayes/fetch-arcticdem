@@ -98,7 +98,7 @@ Fetch ArcticDEM DEMs from STAC and save as cloud-optimized GeoTIFFs.
 | `--bounds` | float × 4 | *required* | Alternative to `--aoi_file`: WGS84 bounds as `minx miny maxx maxy` |
 | `--output_dir` | str | *required* | Output directory for results |
 | `--stac_url` | str | `https://stac.pgc.umn.edu/api/v1/` | STAC API URL for ArcticDEM catalog |
-| `--collection` | str | `arcticdem-strips-s2s041-2m` | STAC collection ID. See [PGC STAC Browser](https://stac.pgc.umn.edu/browser/) for available collections |
+| `--collection` | str | `arcticdem-strips-s2s041-2m` | STAC collection ID. See [PGC STAC Endpoint](https://stac.pgc.umn.edu/api/v1/) for available collections |
 | `--date_range` | str × 2 | None | Date range as `START_DATE END_DATE` (YYYY-MM-DD format) |
 | `--min_valid_fraction` | float | 0.5 | Minimum valid pixel fraction required (0.0-1.0). Filters DEMs with excessive masked areas |
 | `--intersection_threshold` | float | 0.8 | Minimum intersection ratio with AOI (0.0-1.0). Higher values ensure better AOI coverage |
@@ -204,10 +204,11 @@ The following ArcticDEM metadata attributes are preserved in output COGs:
 - `dem_id`: DEM strip segment identifier
 - `pairname`: Stereopair identifier  
 - `acqdate1`, `acqdate2`: Acquisition dates for stereopair images
-- `gsd`: Ground sample distance (resolution)
+- `gsd`: Ground sample distance
 - `epsg`: Spatial reference system
 - `valid_area_sqkm`: Area covered by valid data pixels
 - `avg_expected_height_accuracy`: Expected vertical accuracy
+- `coreg_rmse_m`: Average RMSE in meters from coregistration of all DEM scenes used to create the DEM strip
 
 See the [PGC metadata documentation](https://www.pgc.umn.edu/guides/stereo-derived-elevation-models/pgc-dem-products-arcticdem-rema-and-earthdem/) for complete field descriptions.
 
