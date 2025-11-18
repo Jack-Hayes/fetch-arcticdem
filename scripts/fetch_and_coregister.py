@@ -41,7 +41,7 @@ def main():
 
     parser.add_argument("--date_range", type=str, nargs=2, metavar=("START_DATE", "END_DATE"))
 
-    parser.add_argument("--min_valid_fraction", type=float, default=0.0)
+    parser.add_argument("--min_valid_fraction", type=float, default=0.5)
 
     parser.add_argument("--intersection_threshold", type=float, default=0.8)
 
