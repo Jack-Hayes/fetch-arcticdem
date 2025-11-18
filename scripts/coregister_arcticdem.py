@@ -30,7 +30,7 @@ def main():
         "--coreg_steps",
         type=str,
         nargs="+",
-        choices=["VerticalShift", "ICP", "NuthKaab", "AffineCoreg", "DhMinimize"],
+        choices=["VerticalShift", "ICP", "NuthKaab", "AffineCoreg", "DhMinimize", "Deramp"],
         default=None,
         help="Coregistration steps (default: VerticalShift ICP NuthKaab)",
     )
